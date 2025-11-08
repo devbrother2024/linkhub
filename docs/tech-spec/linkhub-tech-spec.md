@@ -38,9 +38,10 @@
 │      └─ utils.ts               # 환경 변수 검증 로직
 ├─ db/
 │  ├─ schema/
+│  │  ├─ index.ts                 # 스키마 export 집계
 │  │  ├─ user.ts                  # Drizzle 테이블 정의
-│  │  ├─ link.ts
-│  │  └─ subscription.ts
+│  │  ├─ link.ts                  # Drizzle 테이블 정의
+│  │  └─ subscription.ts          # Drizzle 테이블 정의
 │  ├─ client.ts                   # Drizzle 인스턴스 및 Neon 연결
 │  └─ seeds/                      # 초기 데이터/테스트 시드
 ├─ lib/
@@ -56,12 +57,14 @@
 ├─ styles/                        # 전역 스타일, 테마 토큰
 ├─ types/                         # 공유 TypeScript 타입 정의
 ├─ components.json                # ShadCN 컴포넌트 설정 메타
-├─ drizzle/
-│  └─ migrations/                # drizzle-kit 마이그레이션 스냅샷
-├─ drizzle.config.ts             # Drizzle Kit 설정 (schema 소스, 출력 경로)
+├─ drizzle/                      # drizzle-kit 마이그레이션 스냅샷 (자동 생성)
+│  └─ migrations/
+├─ drizzle.config.ts             # Drizzle Kit 설정 (schema: ./db/schema/index.ts, out: ./drizzle)
 ├─ scripts/                      # 배포 전 준비 스크립트 (예: 환경 변수 검사)
 ├─ package.json
-└─ next.config.js                 # Next.js 설정 (Next.js 16 이상)
+├─ pnpm-lock.yaml                 # pnpm lockfile
+├─ .env.example                   # 환경 변수 템플릿
+└─ next.config.ts                 # Next.js 설정 (Next.js 16 이상, TypeScript)
 ```
 
 ---
@@ -145,7 +148,7 @@
 3. Better Auth용 카카오 OAuth 클라이언트 키, Toss Payments API 키, Neon 접속 정보 입력.
 4. `pnpm dlx shadcn@latest init`으로 ShadCN 기반 컴포넌트 세트 초기화 후, 필요한 컴포넌트를 `pnpm dlx shadcn@latest add form button dialog`처럼 추가.
 5. Prettier 설정 파일(`.prettierrc`, `.prettierignore`) 생성 및 `package.json`에 포맷팅 스크립트 추가(`pnpm format`, `pnpm format:check`).
-6. `pnpm drizzle-kit generate`로 마이그레이션 생성 후 `pnpm drizzle-kit push`로 로컬 DB 스키마 반영.
+6. `pnpm db:generate`로 마이그레이션 생성 후 `pnpm db:push`로 로컬 DB 스키마 반영 (또는 `pnpm db:migrate`로 마이그레이션 적용).
 7. `pnpm dev`로 개발 서버 실행, `http://localhost:3000` 접속.
 8. Stripe CLI 유사하게 Toss 웹훅 테스트를 위해 `pnpm toss:webhook` 스크립트에서 msw 또는 테스트 서버로 시뮬레이션.
 9. `scripts/verify-env.ts`을 prepush 훅에 연결해 환경 변수 누락을 방지.
@@ -156,7 +159,7 @@
 
 1. **Epic 1: 프로젝트 초기화 및 기본 인프라**
    - Next.js + TypeScript 프로젝트 초기화, Tailwind 및 ShadCN 설정, ESLint/Prettier 정비.
-   - `db/schema`에 Drizzle 스키마(`user.ts`, `link.ts`, `subscription.ts`) 작성, `db/client.ts`에서 Neon 연결 확인.
+   - `db/schema/`에 Drizzle 스키마(`user.ts`, `link.ts`, `subscription.ts`) 작성하고 `db/schema/index.ts`에서 export, `db/client.ts`에서 Neon 연결 확인.
    - Better Auth 설정 및 카카오 OAuth 테스트.
 2. **Epic 2: 사용자 인증 및 계정 운영**
    - 로그인/로그아웃 UI, 세션 보호 라우팅, 대시보드 접근 제어.
