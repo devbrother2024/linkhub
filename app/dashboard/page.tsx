@@ -2,9 +2,11 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/server/auth/get-session'
 import { LogoutButton } from '@/features/auth/components/logout-button'
 import { LinkStatsCard } from '@/features/links/components/link-stats-card'
+import { SubscriptionStatusCard } from '@/features/billing/components/subscription-status-card'
 import { CreateLinkForm } from '@/features/links/components/create-link-form'
 import { LinkList } from '@/features/links/components/link-list'
 import { getLinks, getLinkStats } from '@/app/dashboard/actions'
+import { getSubscription } from '@/app/dashboard/billing/actions'
 import { Toaster } from '@/components/ui/sonner'
 
 export default async function DashboardPage() {
@@ -16,11 +18,16 @@ export default async function DashboardPage() {
 
   const planType = (session.user.planType as 'FREE' | 'PRO') || 'FREE'
 
-  // 통계 및 링크 목록 조회
-  const [statsResult, linksResult] = await Promise.all([
+  // 통계, 링크 목록, 구독 정보 조회
+  const [statsResult, linksResult, subscriptionResult] = await Promise.all([
     getLinkStats(),
     getLinks(),
+    getSubscription(),
   ])
+
+  const subscription = subscriptionResult.success
+    ? subscriptionResult.subscription
+    : null
 
   const stats = statsResult.success ? statsResult.stats : { dailyCount: 0, activeCount: 0 }
   const links = linksResult.success ? linksResult.links : []
@@ -48,12 +55,26 @@ export default async function DashboardPage() {
           <h2 className="mb-4 text-xl font-semibold text-black dark:text-zinc-50">
             대시보드
           </h2>
-          {/* 통계 카드 */}
-          <LinkStatsCard
-            planType={planType}
-            dailyCount={stats.dailyCount}
-            activeCount={stats.activeCount}
-          />
+          <div className="mb-6 grid gap-6 md:grid-cols-2">
+            {/* 통계 카드 */}
+            <LinkStatsCard
+              planType={planType}
+              dailyCount={stats.dailyCount}
+              activeCount={stats.activeCount}
+            />
+            {/* 구독 상태 카드 */}
+            <SubscriptionStatusCard
+              planType={planType}
+              subscriptionStatus={
+                subscription?.status as
+                  | 'ACTIVE'
+                  | 'CANCELLED'
+                  | 'EXPIRED'
+                  | undefined
+              }
+              currentPeriodEnd={subscription?.currentPeriodEnd || null}
+            />
+          </div>
         </div>
 
         <div className="mb-8">

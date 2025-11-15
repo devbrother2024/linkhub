@@ -6,6 +6,10 @@
     },
     "Better Auth": {
       "url": "https://mcp.chonkie.ai/better-auth/better-auth-builder/mcp"
+    },
+    "tosspayments-integration-guide": {
+      "command": "npx",
+      "args": ["-y", "@tosspayments/integration-guide-mcp@latest"]
     }
   }
 }

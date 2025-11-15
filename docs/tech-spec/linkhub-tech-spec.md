@@ -18,7 +18,6 @@
 │  │      └─ actions.ts          # 링크별 Server Actions
 │  ├─ api/                       # 외부 API/웹훅 전용 Route Handlers
 │  │  ├─ auth/[...nextauth]/route.ts # Better Auth 핸들러
-│  │  └─ billing/toss/route.ts   # Toss Payments 웹훅 처리
 │  └─ layout.tsx                 # Root Layout
 ├─ components/
 │  ├─ ui/                         # ShadCN CLI가 생성한 원자 컴포넌트(Button, Dialog 등)
@@ -77,7 +76,7 @@
 - 단축 URL 리다이렉션은 `redirect/[slug]/page.tsx`(Server Component)로 처리해 지연 시간을 최소화한다.
 - 인증은 Better Auth를 Next.js Route Handler(`app/api/auth/[...nextauth]/route.ts`)에 연결하고, 세션 정보를 서버 컴포넌트에서 직접 조회해 클라이언트 상태 관리를 단순화한다.
 - 데이터 저장은 Neon Postgres를 사용하고 Drizzle ORM + drizzle-kit으로 스키마·마이그레이션을 관리해 타입 안전성과 빠른 반복을 보장한다.
-- 결제는 Toss Payments 결제창 기반 REST 연동을 채택하고, 결제 완료 및 구독 상태 동기화는 웹훅(`app/api/billing/toss/route.ts`)으로 처리한다.
+- 결제는 Toss Payments 결제창 기반 REST 연동을 사용하며, 성공 리다이렉트 단계에서 Server Action이 결제 승인 API를 호출해 구독 상태를 즉시 갱신하고 Billing Key·결제 이력을 저장한다. (웹훅 미사용)
 - Free/Pro 플랜 정책은 서버 유틸(`lib/plan.ts`)로 캡슐화하여 Server Actions와 Route Handlers에서 일관된 검증을 수행한다.
 - 서버 비즈니스 로직은 `server/` 폴더에 서비스 계층으로 분리해 Server Actions와 Route Handlers에서 재사용한다.
 - 운영자는 환경 변수와 배포 상태를 `scripts/verify-env.ts` 같은 사전 점검 스크립트로 확인할 수 있게 한다.
@@ -125,8 +124,8 @@
   - 대시보드 진입 시 서버에서 `plan.evaluate(userId)`를 호출해 남은 할당량을 계산하고 UI에 노출.
 - **결제(Toss Payments)**
   - 프런트에서 Toss Payments SDK를 통해 결제 요청 생성. 결제 승인 이후 Toss에서 웹훅 호출.
-  - `/api/billing/toss/route.ts`에서 시그니처 검증 후 `Subscription` 상태 갱신, `planType`을 `PRO`로 업데이트 (`db.update(subscriptions)`).
-  - 결제 실패 또는 취소 이벤트도 동일 웹훅에서 처리.
+- 결제 성공 시 `/billing/success` Server Component가 Toss 승인 API를 호출하고, Billing Key와 결제 정보(주문번호, 금액, 결제일, 상태)를 `Subscription`/`PaymentHistory`에 기록한다.
+- 결제 실패 또는 취소 시 클라이언트가 즉시 실패 페이지로 이동하며, 서버는 결제 이력에 실패 상태를 기록하거나 Cron이 재시도하지 않는다.
 - **운영자의 환경 변수 검증**
   - `scripts/verify-env.ts`에서 `process.env`에 필수 값(도메인, PG 키, OAuth 키)이 존재하는지 체크.
   - 배포 파이프라인(Vercel)에서 프리 데플로이 훅으로 스크립트 실행.
