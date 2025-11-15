@@ -13,7 +13,7 @@ config({ path: resolve(process.cwd(), '.env.local') })
 
 async function runCron() {
   const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
-  const cronSecret = process.env.VERCEL_CRON_SECRET || 'test-secret'
+  const cronSecret = process.env.CRON_SECRET || 'test-secret'
 
   console.log('🔄 자동 구독 갱신 Cron 실행 중...')
   console.log(`📍 URL: ${baseUrl}/api/cron/billing`)

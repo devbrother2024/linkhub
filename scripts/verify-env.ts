@@ -15,7 +15,7 @@ const requiredEnvVars = [
   'TOSS_PAYMENTS_CLIENT_KEY',
   'TOSS_PAYMENTS_SECRET_KEY',
   'NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY',
-  'VERCEL_CRON_SECRET',
+  'CRON_SECRET',
 ]
 
 const optionalEnvVars = [

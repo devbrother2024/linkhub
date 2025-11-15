@@ -15,7 +15,7 @@ import { renewSubscription } from '@/server/billing/subscription-service'
  */
 function verifyCronRequest(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.VERCEL_CRON_SECRET
+  const cronSecret = process.env.CRON_SECRET
 
   if (!cronSecret) {
     return false
