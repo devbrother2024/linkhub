@@ -3,9 +3,9 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
-export default function BillingFailPage() {
+function BillingFailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -40,3 +40,20 @@ export default function BillingFailPage() {
   )
 }
 
+export default function BillingFailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+          <div className="text-center">
+            <div className="mb-4 text-2xl font-semibold text-zinc-600 dark:text-zinc-400">
+              로딩 중...
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <BillingFailContent />
+    </Suspense>
+  )
+}

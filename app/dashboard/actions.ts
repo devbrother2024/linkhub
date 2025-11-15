@@ -129,6 +129,7 @@ export async function getLinks() {
       success: true,
       links: links.map((link) => ({
         ...link,
+        status: link.status as 'ACTIVE' | 'INACTIVE' | 'EXPIRED',
         shortUrl: `${brandDomain}/redirect/${link.slug}`,
       })),
     }

@@ -26,7 +26,7 @@ export function CreateLinkForm({ planType }: CreateLinkFormProps) {
 
   useEffect(() => {
     if (state?.success) {
-      const shortUrl = state.shortUrl || formatShortUrl(state.slug)
+      const shortUrl = state.shortUrl || (state.slug ? formatShortUrl(state.slug) : '')
       setCreatedShortUrl(shortUrl)
       setOriginalUrl('')
       setSlug('')

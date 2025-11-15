@@ -19,12 +19,12 @@ export function SubscriptionStatusCard({
   const effectivePlanType = getEffectivePlanType(
     planType,
     subscriptionStatus || 'EXPIRED',
-    currentPeriodEnd,
+    currentPeriodEnd ?? null,
   )
 
   const daysUntilExpiry = currentPeriodEnd
     ? getDaysUntilExpiry(currentPeriodEnd)
-    : 0
+    : getDaysUntilExpiry(null)
 
   return (
     <Card className="p-6">

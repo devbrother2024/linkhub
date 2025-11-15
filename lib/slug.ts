@@ -41,7 +41,7 @@ export function validateSlug(slug: string): {
     if (error instanceof z.ZodError) {
       return {
         valid: false,
-        error: error.errors[0]?.message || '유효하지 않은 슬러그입니다.',
+        error: error.issues[0]?.message || '유효하지 않은 슬러그입니다.',
       }
     }
     return { valid: false, error: '유효하지 않은 슬러그입니다.' }

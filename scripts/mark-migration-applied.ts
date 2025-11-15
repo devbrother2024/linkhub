@@ -20,7 +20,7 @@ if (!DATABASE_URL) {
 }
 
 async function markMigrationApplied() {
-  const sql = postgres(DATABASE_URL)
+  const sql = postgres(DATABASE_URL as string)
 
   try {
     // 마이그레이션 기록 테이블이 없으면 생성
