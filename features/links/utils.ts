@@ -53,7 +53,9 @@ export function formatDate(date: Date | string | null | undefined): string {
 /**
  * 상대 시간 포맷팅 (예: "2시간 전", "3일 전")
  */
-export function formatRelativeTime(date: Date | string | null | undefined): string {
+export function formatRelativeTime(
+  date: Date | string | null | undefined,
+): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? new Date(date) : date
   if (isNaN(d.getTime())) return '-'
@@ -101,4 +103,3 @@ export function normalizeUrl(url: string): string {
   }
   return url
 }
-
