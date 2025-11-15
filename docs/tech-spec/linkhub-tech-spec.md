@@ -17,7 +17,6 @@
 │  │      ├─ page.tsx            # 링크 상세·편집 (Server Component)
 │  │      └─ actions.ts          # 링크별 Server Actions
 │  ├─ api/                       # 외부 API/웹훅 전용 Route Handlers
-│  │  ├─ redirects/[slug]/route.ts # 리다이렉션 조회 API (Edge Runtime)
 │  │  ├─ auth/[...nextauth]/route.ts # Better Auth 핸들러
 │  │  └─ billing/toss/route.ts   # Toss Payments 웹훅 처리
 │  └─ layout.tsx                 # Root Layout
@@ -75,7 +74,7 @@
 - **Server Actions 우선**: 폼 제출, 데이터 변경(생성/수정/삭제)은 Server Actions(`app/dashboard/actions.ts`)를 사용해 타입 안전성과 간단한 에러 처리를 보장한다. Route Handlers(`app/api/`)는 외부 API 호출, 웹훅, OAuth 콜백 등 외부 통신 전용으로 제한한다.
 - **Server Components 기본**: 페이지 컴포넌트는 기본적으로 Server Components로 작성하고, 인터랙티브가 필요한 경우에만 `'use client'`를 사용한다.
 - UI는 ShadCN UI 컴포넌트를 기본으로 활용하고 Tailwind 테마 토큰을 브랜드 컬러에 맞게 재정의한다.
-- 단축 URL 리다이렉션은 `redirect/[slug]/page.tsx`(Server Component) 또는 `app/api/redirects/[slug]/route.ts`(Edge Runtime)로 처리해 지연 시간을 최소화한다.
+- 단축 URL 리다이렉션은 `redirect/[slug]/page.tsx`(Server Component)로 처리해 지연 시간을 최소화한다.
 - 인증은 Better Auth를 Next.js Route Handler(`app/api/auth/[...nextauth]/route.ts`)에 연결하고, 세션 정보를 서버 컴포넌트에서 직접 조회해 클라이언트 상태 관리를 단순화한다.
 - 데이터 저장은 Neon Postgres를 사용하고 Drizzle ORM + drizzle-kit으로 스키마·마이그레이션을 관리해 타입 안전성과 빠른 반복을 보장한다.
 - 결제는 Toss Payments 결제창 기반 REST 연동을 채택하고, 결제 완료 및 구독 상태 동기화는 웹훅(`app/api/billing/toss/route.ts`)으로 처리한다.
@@ -88,11 +87,11 @@
 ## Implementation Stack
 
 - 프런트엔드: Next.js 16 이상(App Router, Turbopack 기본 빌드), React Server Components, Server Actions, TypeScript, Tailwind CSS, ShadCN UI
-- 백엔드: Next.js Server Actions(데이터 변경), Route Handlers(외부 API/웹훅), Edge Runtime(리다이렉션), Drizzle ORM
+- 백엔드: Next.js Server Actions(데이터 변경), Route Handlers(외부 API/웹훅), Drizzle ORM
 - 데이터베이스: Neon Postgres (Serverless), drizzle-orm + drizzle-kit
 - 인증: Better Auth with Kakao OAuth
 - 결제: Toss Payments (결제 페이지 + 웹훅)
-- 인프라/배포: Vercel (Next.js), Neon (DB), Vercel Edge Functions
+- 인프라/배포: Vercel (Next.js), Neon (DB)
 - 기타: Zod(입력 검증), Axios(외부 결제 API 호출), pino(서버 로깅), Prettier(코드 포맷팅), Playwright(E2E), Jest+Testing Library
 
 ---
@@ -111,9 +110,8 @@
   4. Server Action이 성공하면 단축 URL(`https://brand.do/{slug}`)을 반환하고, 클라이언트 컴포넌트에서 `useActionState` 또는 `useFormState`로 결과를 처리해 Copy 버튼을 활성화한다.
 - **리다이렉션**
   - `app/(public)/redirect/[slug]/page.tsx`(Server Component)에서 `db.query.links.findFirst`로 유효성 검사 후 `redirect(originalUrl)`.
-  - 또는 `app/api/redirects/[slug]/route.ts`(Edge Runtime)를 사용해 더 빠른 응답을 제공할 수 있다.
   - `clickLimit` 초과, 만료된 링크는 410 상태 페이지로 응답.
-  - clickCount 증가는 리다이렉션 후 비동기로 처리하거나, Server Action(`app/api/redirects/[slug]/route.ts` 내부)에서 처리한다.
+  - clickCount 증가는 리다이렉션 후 비동기로 처리한다.
 
 ### 2. 회원 및 구독 운영 (FR004~FR006)
 
@@ -135,7 +133,7 @@
 
 ### 3. 비기능 요구사항 대응
 
-- **NFR001 (리다이렉션 지연 최소화)**: Edge 함수 사용, 슬러그 인덱스(`CREATE UNIQUE INDEX idx_links_slug`) 적용, 가능한 캐시 사용.
+- **NFR001 (리다이렉션 지연 최소화)**: 슬러그 인덱스(`CREATE UNIQUE INDEX idx_links_slug`) 적용, 가능한 캐시 사용.
 - **NFR002 (일관된 경험)**: Tailwind 기반 반응형 레이아웃, Better Auth의 커스텀 로그인 UI, Toss 결제창 모바일 대응 확인.
 - **NFR003 (운영 가시성)**: 대시보드에 활성 링크, 만료 임박 링크, 구독 상태 요약 카드 제공. 서버 로깅은 pino + Vercel Log Drain, 결제 웹훅 이벤트는 Neon 테이블에 기록(`db.insert(linkEvents)`).
 
@@ -166,7 +164,7 @@
    - Free/Pro 플랜 로직(`plan.ts`) 구현, 플랜 제한 안내 컴포넌트 개발.
 3. **Epic 3: 링크 생성·리다이렉션·구독**
    - 링크 생성 폼, 서버 액션, 링크 목록/편집 화면 구현.
-   - Edge 기반 리다이렉션 및 클릭 추적 API 구현.
+   - Server Component 기반 리다이렉션 페이지 및 클릭 추적 구현.
    - Toss 결제 연동, 구독 상태, 결제 내역 확인 화면 구축.
    - 운영자용 환경 점검 스크립트 및 기본 모니터링(로깅, 에러 리포트) 설정.
 
@@ -180,7 +178,7 @@
 - **API 통합 테스트**: Next.js Route Handler를 `@testing-library/react`와 `supertest` 조합으로 검증, 결제 웹훅 가짜 페이로드 테스트 포함.
 - **E2E 테스트**: Playwright로 로그인 → 링크 생성 → 링크 클릭 → 플랜 업그레이드 흐름 자동화. 모바일 뷰포트 시나리오 포함.
 - **보안 테스트**: 슬러그 충돌, 권한 확인(타 사용자 링크 접근 차단), 환경 변수 누락 시 처리.
-- **성능 확인**: Lighthouse, WebPageTest로 핵심 페이지 LCP/TTFB 검증, Edge 리다이렉션 평균 응답 시간 측정.
+- **성능 확인**: Lighthouse, WebPageTest로 핵심 페이지 LCP/TTFB 검증, 리다이렉션 페이지 평균 응답 시간 측정.
 
 ---
 
@@ -188,7 +186,7 @@
 
 - **배포 대상**: Vercel Production(Project: `linkhub`), Preview 환경은 브랜치마다 자동 생성.
 - **파이프라인**
-  1. 메인 브랜치 머지 시 Vercel이 빌드 및 Edge 함수 배포.
+  1. 메인 브랜치 머지 시 Vercel이 빌드 및 배포.
   2. `scripts/verify-env.ts` prebuild 단계 실행, 실패 시 배포 중단.
   3. Drizzle 마이그레이션은 `pnpm drizzle-kit push`로 Neon에 적용.
 - **환경 변수 관리**: Vercel Project Settings와 Neon dashboard 동기화, Toss 및 OAuth 키는 Secret Storage 사용.

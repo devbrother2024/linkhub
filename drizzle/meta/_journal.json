@@ -8,6 +8,13 @@
       "when": 1762682421904,
       "tag": "0000_ancient_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763178134788,
+      "tag": "0001_bitter_fenris",
+      "breakpoints": true
     }
   ]
 }

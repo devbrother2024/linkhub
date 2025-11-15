@@ -21,3 +21,5 @@ export const subscriptionRelations = relations(subscription, ({ one }) => ({
     references: [user.id],
   }),
 }))
+
+

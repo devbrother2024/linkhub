@@ -1,7 +1,11 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/server/auth/get-session'
-import { getPlanLimits } from '@/lib/plan'
 import { LogoutButton } from '@/features/auth/components/logout-button'
+import { LinkStatsCard } from '@/features/links/components/link-stats-card'
+import { CreateLinkForm } from '@/features/links/components/create-link-form'
+import { LinkList } from '@/features/links/components/link-list'
+import { getLinks, getLinkStats } from '@/app/dashboard/actions'
+import { Toaster } from '@/components/ui/sonner'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -10,9 +14,16 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const planLimits = getPlanLimits(
-    (session.user.planType as 'FREE' | 'PRO') || 'FREE',
-  )
+  const planType = (session.user.planType as 'FREE' | 'PRO') || 'FREE'
+
+  // 통계 및 링크 목록 조회
+  const [statsResult, linksResult] = await Promise.all([
+    getLinkStats(),
+    getLinks(),
+  ])
+
+  const stats = statsResult.success ? statsResult.stats : { dailyCount: 0, activeCount: 0 }
+  const links = linksResult.success ? linksResult.links : []
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black">
@@ -37,35 +48,25 @@ export default async function DashboardPage() {
           <h2 className="mb-4 text-xl font-semibold text-black dark:text-zinc-50">
             대시보드
           </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                일일 링크 생성 한도
-              </h3>
-              <p className="text-2xl font-semibold text-black dark:text-zinc-50">
-                {planLimits.dailyLinkCreation === Infinity
-                  ? '무제한'
-                  : planLimits.dailyLinkCreation}
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h3 className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                최대 활성 링크 수
-              </h3>
-              <p className="text-2xl font-semibold text-black dark:text-zinc-50">
-                {planLimits.maxActiveLinks === Infinity
-                  ? '무제한'
-                  : planLimits.maxActiveLinks}
-              </p>
-            </div>
-          </div>
+          {/* 통계 카드 */}
+          <LinkStatsCard
+            planType={planType}
+            dailyCount={stats.dailyCount}
+            activeCount={stats.activeCount}
+          />
         </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-zinc-600 dark:text-zinc-400">
-            링크 생성 기능은 곧 추가될 예정입니다.
-          </p>
+
+        <div className="mb-8">
+          {/* 링크 생성 폼 */}
+          <CreateLinkForm planType={planType} />
+        </div>
+
+        <div>
+          {/* 링크 목록 */}
+          <LinkList initialLinks={links} />
         </div>
       </main>
+      <Toaster />
     </div>
   )
 }
