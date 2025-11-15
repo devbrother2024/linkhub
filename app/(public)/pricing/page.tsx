@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { getSession } from '@/server/auth/get-session'
 import { BillingAuthButton } from '@/features/billing/components/billing-auth-button'
 
@@ -13,9 +14,11 @@ export default async function PricingPage() {
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black">
       <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-            LinkHub
-          </h1>
+          <Link href="/dashboard">
+            <h1 className="text-2xl font-semibold text-black dark:text-zinc-50 cursor-pointer hover:opacity-80 transition-opacity">
+              LinkHub
+            </h1>
+          </Link>
         </div>
       </header>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-12">
